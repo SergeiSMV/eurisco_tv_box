@@ -477,7 +477,17 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
                           _controller1.dispose();
                           _controller2.dispose();
                           controllerName1 = 'BigBuckBunny.mp4'; controllerName2 = 'BigBuckBunny.mp4';
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ContentLib())).whenComplete(() { return ref.refresh(getConfigProvider); });
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ContentLib())).whenComplete(() { 
+                            ref.read(containerSizeProvider.notifier).state = 0;
+                            ref.read(onFocusIndexProvider.notifier).state = 999;
+                            ref.read(configProvider.notifier).state = {};
+                            indexTimer.cancel();
+                            initTimer.cancel();
+                            _controller1.dispose();
+                            _controller2.dispose();
+                            controllerName1 = 'BigBuckBunny.mp4'; controllerName2 = 'BigBuckBunny.mp4';
+                            return ref.refresh(getConfigProvider); 
+                          });
                         }, 
                         icon: const Icon(Icons.photo_library, size: 45,),
                         color: containerSize == 0 ? Colors.transparent : focusIndex == 3 ? Colors.white : Colors.blueGrey.shade600,
