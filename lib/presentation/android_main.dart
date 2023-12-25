@@ -92,6 +92,8 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
               ref.read(contentIndexProvider.notifier).state = 0;
               indexTimer.cancel();
               initTimer.cancel();
+              _controller1.dispose();
+              _controller2.dispose();
               controllerName1 = 'BigBuckBunny.mp4'; controllerName2 = 'BigBuckBunny.mp4';
               return Future.delayed(const Duration(seconds: 3), () {
                 return ref.refresh(getConfigProvider);
@@ -420,6 +422,8 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
                         ref.read(configProvider.notifier).state = {};
                         indexTimer.cancel();
                         initTimer.cancel();
+                        _controller1.dispose();
+                        _controller2.dispose();
                         controllerName1 = 'BigBuckBunny.mp4'; controllerName2 = 'BigBuckBunny.mp4';
                         return ref.refresh(getConfigProvider); 
                       }, 
@@ -470,6 +474,8 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
                           ref.read(containerSizeProvider.notifier).state = 0;
                           _controller1.dispose(); _controller2.dispose();
                           initTimer.cancel(); indexTimer.cancel();
+                          _controller1.dispose();
+                          _controller2.dispose();
                           controllerName1 = 'BigBuckBunny.mp4'; controllerName2 = 'BigBuckBunny.mp4';
                           Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ContentLib())).whenComplete(() { return ref.refresh(getConfigProvider); });
                         }, 

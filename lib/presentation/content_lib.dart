@@ -118,9 +118,7 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                           const SizedBox(width: 50,),
                           Text(_timeString, style: firm18)
                         ],
-                      ),
-                      // const SizedBox(height: 5,),
-                      
+                      ),                      
         
                       Expanded(
                         child: Padding(

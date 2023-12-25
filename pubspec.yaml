@@ -65,6 +65,15 @@ dev_dependencies:
   freezed: ^2.4.5
   json_serializable: ^6.7.1
 
+flutter_native_splash:
+  image: lib/images/splash_screen.png
+  android_gravity: center
+  color: "ffffff"
+  android_12:
+    image: lib/images/splash_screen.png
+  # flutter pub get
+  # flutter pub run flutter_native_splash:create
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
