@@ -24,16 +24,17 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
   VideoPlayerController? controller1;
   VideoPlayerController? controller2;
   Timer? timer;
-  int index = 0;
 
-  String controllerName1 = 'controller1';
-  String controllerName2 = 'controller2';
+  late String controllerName1;
+  late String controllerName2;
 
 
 
   @override
   void initState() {
     super.initState();
+    controllerName1 = 'controller1';
+    controllerName2 = 'controller2';
     initDirectory();
   }
 
