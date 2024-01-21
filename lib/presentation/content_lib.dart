@@ -9,7 +9,7 @@ import 'package:lottie/lottie.dart';
 
 import '../colors.dart';
 import '../data/providers.dart';
-import 'play_preview.dart';
+import 'player/preview_player.dart';
 
 class ActionIntent extends Intent {}
 
@@ -132,14 +132,14 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                               childAspectRatio: 1.3,
                               crossAxisCount: 3
                             ),
-                            itemCount: config['config'].length,
+                            itemCount: config['content'].length,
                             itemBuilder: (context, index){
                               return InkWell(
                                 onFocusChange: (bool isFocused){
                                   isFocused ? ref.read(onFocusIndexProvider.notifier).state = index : null;
                                 },
                                 onTap: (){ 
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PlayPreview(content: config['config'][index])));
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PreviewPlayer(content: config['content'][index])));
                                 },
                                 overlayColor: MaterialStateProperty.resolveWith((states) => Colors.transparent),
                                 child: Padding(
@@ -163,7 +163,7 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                                                 aspectRatio: 16.0 / 9.0,
                                                 child: FittedBox(
                                                   fit: BoxFit.fill,
-                                                  child: Image.network(config['config'][index]['preview'])
+                                                  child: Image.network(config['content'][index]['preview'])
                                                 )
                                               ),
                                               Positioned.fill(
@@ -188,12 +188,12 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.only(left: 5),
-                                        child: Text(config['config'][index]['name'], style: firm18,),
+                                        child: Text(config['content'][index]['name'], style: firm18,),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.only(left: 5),
-                                        child: config['config'][index]['show'] ? 
-                                          Text('${config['config'][index]['start']} - ${config['config'][index]['end']}', style: firm14) 
+                                        child: config['content'][index]['show'] ? 
+                                          Text('${config['content'][index]['start']} - ${config['content'][index]['end']}', style: firm14) 
                                           : 
                                           Text('показ на устройстве запрещен', style: firm14),
                                       ),

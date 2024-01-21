@@ -7,7 +7,7 @@ class ConfigImpl extends ConfigRepository{
 
   // получить следующий индекс
   @override
-  int getNextIndex(int currentIndex, int loopLength, List config){
+  int getNextIndex(int currentIndex, int loopLength){
     int nextIndex = currentIndex == loopLength - 1 ? 0 : currentIndex + 1;
     return nextIndex;
   }

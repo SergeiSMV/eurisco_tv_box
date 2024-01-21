@@ -3,7 +3,7 @@ import 'dart:io';
 abstract class ConfigRepository{
 
   // получить следующий индекс
-  int getNextIndex(int currentIndex, int loopLength, List config);
+  int getNextIndex(int currentIndex, int loopLength);
 
   // получить путь к файлу следующего индекса
   String getNextPath(List config, int nextIndex, Directory directory);

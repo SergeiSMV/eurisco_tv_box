@@ -4,7 +4,6 @@ import 'package:dart_amqp/dart_amqp.dart' as amqp;
 import 'package:eurisco_tv_box/domain/rabbitmq_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../globals.dart';
 import '../providers.dart';
 
 class RabbitMQImpl extends RabbitMQRepository{
@@ -26,18 +25,17 @@ class RabbitMQImpl extends RabbitMQRepository{
 
       amqp.Consumer consumer = await queue.consume(noAck: false);
       consumer.listen((amqp.AmqpMessage message) {
-        log.d("Получено ${message.payloadAsString.runtimeType}: ${message.payloadAsString}");
         Map result = jsonDecode(message.payloadAsString);
-
-        result['action'] == 'update' ? ref.refresh(getConfigProvider) : null;
-
-
+        result['action'] == 'update' ? {
+          ref.read(contentForDisplayProvider.notifier).state = [],
+          ref.read(contentIndexProvider.notifier).state = 0,
+          ref.refresh(getConfigProvider)
+        } : null;
         // Подтверждение обработки сообщения
         message.ack();
       });
-      // log.d("Успешное подключения к RabbitMQ");
     } catch (e) {
-      log.d("Ошибка подключения к RabbitMQ: $e");
+      null;
     }
     return client;
   } 

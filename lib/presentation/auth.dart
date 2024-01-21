@@ -9,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../colors.dart';
 import '../data/implements/server_implementation.dart';
-import 'main_box.dart';
+import 'main_page.dart';
 
 class ActionIntent extends Intent {}
 
@@ -114,7 +114,7 @@ class _AuthState extends ConsumerState<Auth> {
                               result == 'failed' ? {
                                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth()))
                               } : {
-                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainBox()))
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainPage()))
                               };
                             });
                           },

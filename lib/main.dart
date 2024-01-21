@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'presentation/auth.dart';
-import 'presentation/main_box.dart';
+import 'presentation/main_page.dart';
 
 
 void main() async {
@@ -51,7 +51,7 @@ Widget authRouter(String client, String connection) {
     connection == 'disconnect' ? {
       HiveImpl().saveClient(''),
       router = const Auth()
-    } : router = const MainBox();
+    } : router = const MainPage();
   }
   return router;
 }

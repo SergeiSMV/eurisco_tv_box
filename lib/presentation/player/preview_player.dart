@@ -5,17 +5,15 @@ import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import '../globals.dart';
-
-class PlayPreview extends StatefulWidget {
+class PreviewPlayer extends StatefulWidget {
   final Map content;
-  const PlayPreview({super.key, required this.content});
+  const PreviewPlayer({super.key, required this.content});
 
   @override
-  State<PlayPreview> createState() => _PlayPreviewState();
+  State<PreviewPlayer> createState() => _PreviewPlayerState();
 }
 
-class _PlayPreviewState extends State<PlayPreview> {
+class _PreviewPlayerState extends State<PreviewPlayer> {
 
 
 
@@ -33,7 +31,6 @@ class _PlayPreviewState extends State<PlayPreview> {
   @override
   void dispose() async {
     isImage ? null : _controller.dispose();
-    log.d('PlayPreview dispose');
     super.dispose();
   }
 
