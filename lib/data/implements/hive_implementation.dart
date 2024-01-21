@@ -7,7 +7,35 @@ import '../../domain/hive_repository.dart';
 class HiveImpl extends HiveRepository{
 
   final Box hive = Hive.box('hiveStorage');
-  
+
+
+  // НОВЫЕ
+  @override // сохранить логин / пароль
+  Future<void> saveClient(String client) async {
+    await hive.put('client', client);
+  }
+
+  @override // сохранить логин / пароль
+  Future<String> getClient() async {
+    String client = await hive.get('client', defaultValue: '');
+    return client;
+  }
+
+  @override // получить имя устройства
+    Future<String> getDeviceName() async {
+      String deviceName = await hive.get('deviceName', defaultValue: '');
+      return deviceName;
+    }
+
+  @override // сохраняем имя устройства
+  Future<void> saveDeviceName(String name) async {
+    await hive.put('deviceName', name);
+  }
+
+
+
+
+  // СТАРЫЕ
   @override // получить логин / пароль
   Future<Map> getAuthData() async {
     Map authData = await hive.get('authData', defaultValue: {});
@@ -20,11 +48,7 @@ class HiveImpl extends HiveRepository{
     return currentConfig;
   }
   
-  @override // получить имя устройства
-  Future<String> getDeviceName() async {
-    String deviceName = await hive.get('deviceName', defaultValue: '');
-    return deviceName;
-  }
+  
   
   @override // сохранить логин / пароль
   Future<void> saveAuthData(Map authData) async {
@@ -36,10 +60,7 @@ class HiveImpl extends HiveRepository{
     await hive.put('config', config);
   }
   
-  @override // сохраняем имя устройства
-  Future<void> saveDeviceName(String name) async {
-    await hive.put('deviceName', name);
-  }
+  
   
   
 }

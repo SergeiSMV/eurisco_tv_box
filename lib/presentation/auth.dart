@@ -1,3 +1,143 @@
+
+import 'package:eurisco_tv_box/data/implements/hive_implementation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_pin_code_fields/flutter_pin_code_fields.dart';
+import 'package:flutter_progress_hud/flutter_progress_hud.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../colors.dart';
+import '../data/implements/server_implementation.dart';
+import 'main_box.dart';
+
+class ActionIntent extends Intent {}
+
+
+class Auth extends ConsumerStatefulWidget {
+  const Auth({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _AuthState();
+}
+
+class _AuthState extends ConsumerState<Auth> {
+
+  bool isKeyboardOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    HiveImpl().saveClient('');
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    final messenger = ScaffoldMessenger.of(context);
+
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.select) : const ActivateIntent(),
+      },
+      child: Actions(
+        actions: {
+          ActionIntent: CallbackAction(onInvoke: (Intent i) => null), 
+        },
+        child: WillPopScope(
+          onWillPop: () async {
+            return false;
+          },
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.white,
+            body: ProgressHUD(
+              barrierColor: Colors.white.withOpacity(0.7),
+              padding: const EdgeInsets.all(20.0),
+              child: Builder(
+                builder: (context) {
+                  return Container(
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        opacity: 0.7,
+                        image: AssetImage('lib/images/background.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                                    
+                        const SizedBox(height: 40,),
+                        Opacity(
+                          opacity: 0.7,
+                          child: Image.asset('lib/images/eurisco_tv.png', scale: 2)
+                        ),
+                        const SizedBox(height: 20,),
+                        Text('для подключения устройства введите PIN код', style: GoogleFonts.montserrat(color: firmColor.withOpacity(0.7), fontSize: 14, fontWeight: FontWeight.w500),),
+                        const SizedBox(height: 10,),
+                                    
+                        PinCodeFields(
+                          obscureCharacter: '∗',
+                          obscureText: true,
+                          margin: const EdgeInsets.all(0.0),
+                          autofocus: false,
+                          length: 4,
+                          fieldBorderStyle: FieldBorderStyle.square,
+                          responsive: false,
+                          fieldHeight: 80.0,
+                          fieldWidth: 80.0,
+                          borderWidth: 2.0,
+                          activeBorderColor: firmColor,
+                          activeBackgroundColor: Colors.white.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10.0),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          autoHideKeyboard: true,
+                          fieldBackgroundColor: Colors.white.withOpacity(0.5),
+                          borderColor: const Color(0xFF7d97af).withOpacity(0.6),
+                          textStyle: firm50,
+                          onComplete: (String value) async {
+                            final progress = ProgressHUD.of(context);
+                            progress?.showWithText('проверка...');
+                            ServerImpl().connectDevice(value).then((result) {
+                              messenger._toast(result);
+                              progress?.dismiss();
+                              result == 'failed' ? {
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth()))
+                              } : {
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainBox()))
+                              };
+                            });
+                          },
+                        ),
+                                    
+                        const SizedBox(height: 20,),
+                        Opacity(opacity: 0.8, child: Text('Все права зашищены©. ООО ЭВРИСКО, 2023', style: firm10,)),
+                        const SizedBox(height: 20,),
+                      ],
+                    ),
+                  );
+                }
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
@@ -7,6 +147,7 @@ import '../../colors.dart';
 import '../data/implements/server_implementation.dart';
 import '../data/providers.dart';
 import 'android_main.dart';
+
 
 class ActionIntent extends Intent {}
 
@@ -236,6 +377,7 @@ class _AndroidAuthState extends ConsumerState<AuthAndroid> {
     );
   }
 }
+*/
 
 extension on ScaffoldMessengerState {
   void _toast(String message){

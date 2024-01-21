@@ -1,8 +1,7 @@
 import 'dart:async';
-// ignore: unused_import
-import 'dart:developer';
 import 'dart:io' as io;
 
+import 'package:dart_amqp/dart_amqp.dart' as amqp;
 import 'package:dotlottie_loader/dotlottie_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,20 +13,21 @@ import 'package:video_player/video_player.dart';
 
 import '../colors.dart';
 import '../data/implements/config_implementation.dart';
+import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
 import '../domain/config_model/config_model.dart';
 import 'content_lib.dart';
 
 class ActionIntent extends Intent {}
 
-class AndroidMain extends ConsumerStatefulWidget {
-  const AndroidMain({super.key});
+class MainBox extends ConsumerStatefulWidget {
+  const MainBox({super.key});
 
   @override
-  ConsumerState<AndroidMain> createState() => _AndroidMainState();
+  ConsumerState<MainBox> createState() => _AndroidMainState();
 }
 
-class _AndroidMainState extends ConsumerState<AndroidMain> {
+class _AndroidMainState extends ConsumerState<MainBox> {
 
   int loopLength = 0;
   int contentIndex = 0;
@@ -44,6 +44,9 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
   late final io.Directory? directory;
   Timer indexTimer = Timer(const Duration(seconds: 0), () { null; });
   Timer initTimer = Timer(const Duration(seconds: 0), () { null; });
+  Timer? monitoring;
+
+  amqp.Client? client;
 
 
   @override
@@ -58,18 +61,46 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
     _controller2.dispose();
     indexTimer.cancel();
     initTimer.cancel();
+    client?.close();
     super.dispose();
   }
 
   Future initialization() async {
     directory = await getExternalStorageDirectory();
+    client = await RabbitMQImpl().connectToRabbitMQ(ref);
   }
+
+
+  void scheduleContent(List content, List contentForDisplay) {
+    if (monitoring != null) {
+      monitoring!.cancel();
+    }
+    List contentForShow = [];
+    monitoring = Timer(const Duration(seconds: 5), () {
+      for (var con in content){
+        bool show = con['show'];
+        bool time = ConfigImpl().compireTime(con['start_time'], con['end_time']);
+        bool date = ConfigImpl().compireDate(con['start_date'], con['end_date']);
+        show && time && date ? contentForShow.add(con) : null;
+      }
+      
+      Set.from(contentForShow).containsAll(contentForDisplay) && Set.from(contentForDisplay).containsAll(contentForShow) ?
+      scheduleContent(content, contentForDisplay) : 
+      {
+        ref.read(loopLengthProvider.notifier).state = contentForShow.length,
+        ref.read(contentForDisplayProvider.notifier).state = contentForShow,
+        ref.read(contentIndexProvider.notifier).state = 0,
+        scheduleContent(content, contentForShow)
+      };
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     
-    ref.watch(getConfigProvider);
-    final loopLength = ref.watch(loopLengthProvider);
+    final getConfig = ref.watch(getConfigProvider);
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
@@ -87,9 +118,10 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
           },
           child: GestureDetector(
             onPanUpdate: (details) async {
-              ref.read(configProvider.notifier).state = {};
+              // ref.read(configProvider.notifier).state = {};
               ref.read(loopLengthProvider.notifier).state = 0;
               ref.read(contentIndexProvider.notifier).state = 0;
+              ref.read(contentForDisplayProvider.notifier).state = [];
               indexTimer.cancel();
               initTimer.cancel();
               _controller1.dispose();
@@ -106,21 +138,27 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
                 padding: const EdgeInsets.all(20.0),
                 child: Consumer(
                   builder: (context, ref, child) {
+                    return getConfig.when(
+                      loading: () => Center(child: Text('загрузка...', style: white18,),),
+                      error: (error, _) => Center(child: Text(error.toString(), style: white18,)), 
+                      data: (data){
 
-                    final config = ref.watch(configProvider);
+                        final loopLength = ref.watch(loopLengthProvider);
+                        final config = ref.watch(configProvider);
+                        List con = config['content'];
 
-                    return config.isEmpty ? 
-                    // загрузка
-                    Center(child: Text('загрузка...', style: white18,),)
-                    // loading()
-                    :
-                    // основной экран
-                    Stack(
-                      children: [
-                        config['config'].isEmpty ? demoMode() : content(config['config'], loopLength),
-                        // appBar приложения
-                        settingsAppBar(config['deviceID'], config['deviceName']),
-                      ],
+                        List contentForDisplay = ref.watch(contentForDisplayProvider);
+
+                        scheduleContent(con, contentForDisplay);
+
+                        return Stack(
+                          children: [
+                            contentForDisplay.isEmpty ? demoMode() : content(contentForDisplay, loopLength),
+                            settingsAppBar(config['deviceID'], config['deviceName']),
+                          ],
+                        );
+
+                      },
                     );
                   }
                 ),
@@ -134,75 +172,54 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
 
   
   Widget content(List config, int loopLength) {
-    bool noContent = checkBlocContent(config);
-    return noContent ? demoMode() :
-    Consumer(
+    return Consumer(
       builder: ((context, ref, child) {
 
-        ConfigImpl cnfImpl = ConfigImpl();
+        ConfigImpl configImpl = ConfigImpl();
 
         final currentIndex = ref.watch(contentIndexProvider);
         ConfigModel cnf = ConfigModel(configModel:  Map<String, dynamic>.from(config[currentIndex]));
         
         String path = '${directory!.path}/${cnf.name}';
-        bool isImage = cnfImpl.isImage(path);
-        bool show = cnf.show;
-        bool showTime = cnfImpl.compireTime(cnf.startShow, cnf.endShow);
+        bool isImage = configImpl.isImage(path);
 
-
-
-        int nextIndex = cnfImpl.getNextIndex(currentIndex, loopLength, config);
+        int nextIndex = configImpl.getNextIndex(currentIndex, loopLength, config);
         ConfigModel nextCnf = ConfigModel(configModel: Map<String, dynamic>.from(config[nextIndex]));
-        String nextPath = cnfImpl.getNextPath(config, nextIndex, directory!);
-        bool nextIsImage = cnfImpl.isImage(nextPath);
-
+        String nextPath = configImpl.getNextPath(config, nextIndex, directory!);
+        bool nextIsImage = configImpl.isImage(nextPath);
         
         if (loopLength == 1) {
           if (isImage){
-            return cnf.show && cnfImpl.compireTime(cnf.startShow, cnf.endShow) ? _imageContent(path) : demoMode();
+            return _imageContent(path);
           } else {
-            cnf.show && cnfImpl.compireTime(cnf.startShow, cnf.endShow)  ?  {
-              _controller1 = VideoPlayerController.file(io.File(path)),
-              _controller1.initialize(),
-              _controller1.setLooping(true),
-              _controller1.setVolume(0),
-              _controller1.play(),
-            } : null;
-            return cnf.show && cnfImpl.compireTime(cnf.startShow, cnf.endShow) ? _videoContent(_controller1) : demoMode();
+            _controller1 = VideoPlayerController.file(io.File(path));
+            _controller1.initialize();
+            _controller1.setLooping(true);
+            _controller1.setVolume(0);
+            _controller1.play();
+            return _videoContent(_controller1);
           }
-        }
-
-        else {
+        } else {
           if (isImage) {
-            if (show && showTime) {
-              initTimer = Timer(const Duration(seconds: 2), () { 
-                nextIndex == currentIndex ? null :
-                {
-                  nextIsImage ? null : {
-                    _controller1 = VideoPlayerController.file(io.File(nextPath)),
-                    _controller1.initialize().then((value){
-                      _controller1.setVolume(0);
-                      _controller1.pause();
-                      controllerName1 = nextCnf.name;
-                    })
-                  }
-                };
-              });
-
-              indexTimer = Timer(Duration(seconds: cnf.duration), () { 
-                nextIndex == currentIndex ? null : ref.read(contentIndexProvider.notifier).state = nextIndex;
-              });
-              return _imageContent(path);
-
-            } else {
-              indexTimer = Timer(const Duration(seconds: 2), () {
-                ref.read(contentIndexProvider.notifier).state = nextIndex;
-              });
-              return loading();
-            }
+            initTimer = Timer(const Duration(seconds: 2), () { 
+              nextIndex == currentIndex ? null :
+              {
+                nextIsImage ? null : {
+                  _controller1 = VideoPlayerController.file(io.File(nextPath)),
+                  _controller1.initialize().then((value){
+                    _controller1.setVolume(0);
+                    _controller1.pause();
+                    controllerName1 = nextCnf.name;
+                  })
+                }
+              };
+            });
+            indexTimer = Timer(Duration(seconds: cnf.duration), () { 
+              nextIndex == currentIndex ? null : ref.read(contentIndexProvider.notifier).state = nextIndex;
+            });
+            return _imageContent(path);
 
           } else {
-
             if (controllerName1 == cnf.name){
               int duration = _controller1.value.duration.inMilliseconds;
 
@@ -261,60 +278,43 @@ class _AndroidMainState extends ConsumerState<AndroidMain> {
               _controller2.setVolume(0);
               _controller2.play();
               return _videoContent(_controller2);
-            }
-            
-            else {
-              if (show && showTime) {
-                int duration;
-                initTimer = Timer(const Duration(seconds: 2), () { 
+
+            } else {
+              int duration;
+              initTimer = Timer(const Duration(seconds: 2), () { 
+                nextIndex == currentIndex ? null :
+                {
+                  nextIsImage ? null : {
+                    _controller2 = VideoPlayerController.file(io.File(nextPath)),
+                    _controller2.initialize(),
+                    _controller2.setVolume(0),
+                    _controller2.pause(),
+                    controllerName2 = nextCnf.name,
+                  }
+                };
+              });
+              _controller1 = VideoPlayerController.file(io.File(path));
+              _controller1.initialize().then((_) {
+                duration = _controller1.value.duration.inMilliseconds;
+                controllerName1 = cnf.name;
+                indexTimer = Timer(Duration(milliseconds: duration), () {
+                  controllerName1 = 'BigBuckBunny.mp4';
                   nextIndex == currentIndex ? null :
                   {
-                    nextIsImage ? null : {
-                      _controller2 = VideoPlayerController.file(io.File(nextPath)),
-                      _controller2.initialize(),
-                      _controller2.setVolume(0),
-                      _controller2.pause(),
-                      controllerName2 = nextCnf.name,
-                    }
+                    ref.read(contentIndexProvider.notifier).state = nextIndex,
+                    _controller1.dispose()
                   };
                 });
-                _controller1 = VideoPlayerController.file(io.File(path));
-                _controller1.initialize().then((_) {
-                  duration = _controller1.value.duration.inMilliseconds;
-                  controllerName1 = cnf.name;
-                  indexTimer = Timer(Duration(milliseconds: duration), () {
-                    controllerName1 = 'BigBuckBunny.mp4';
-                    nextIndex == currentIndex ? null :
-                    {
-                      ref.read(contentIndexProvider.notifier).state = nextIndex,
-                      _controller1.dispose()
-                    };
-                  });
-                });
-                nextIndex == currentIndex ? _controller1.setLooping(true) : null;
-                _controller1.setVolume(0);
-                _controller1.play();
-                return _videoContent(_controller1);
-              } else {
-                indexTimer = Timer(const Duration(seconds: 2), () {
-                  nextIndex == currentIndex ? null : ref.read(contentIndexProvider.notifier).state = nextIndex;
-                });
-                return loading();
-              }
+              });
+              nextIndex == currentIndex ? _controller1.setLooping(true) : null;
+              _controller1.setVolume(0);
+              _controller1.play();
+              return _videoContent(_controller1);
             }
           }
         }
       })
     );
-  }
-
-  bool checkBlocContent(List config){
-    int unBlockContent = 0;
-    for (var conf in config){
-      bool showTime = ConfigImpl().compireTime(conf['start'], conf['end']);
-      conf['show'] && showTime ? unBlockContent++ : null;
-    }
-    return unBlockContent == 0 ? true : false;
   }
 
   Widget demoMode(){

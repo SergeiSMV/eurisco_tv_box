@@ -50,6 +50,10 @@ dependencies:
   json_annotation: ^4.8.1
   rps: ^0.7.0
   flutter_native_splash: ^2.3.7
+  flutter_pin_code_fields: ^2.2.0
+  logger: ^2.0.2+1
+  google_fonts: ^6.1.0
+  dart_amqp: ^0.2.5
 
 dev_dependencies:
   flutter_test:

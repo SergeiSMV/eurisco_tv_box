@@ -8,24 +8,8 @@ class ConfigImpl extends ConfigRepository{
   // получить следующий индекс
   @override
   int getNextIndex(int currentIndex, int loopLength, List config){
-
-    bool continueLoop = true;
-    int returnIndex = 0;
     int nextIndex = currentIndex == loopLength - 1 ? 0 : currentIndex + 1;
-    
-    while (continueLoop){
-      String startTime = config[nextIndex]['start'];
-      String endTime = config[nextIndex]['end'];
-      bool show = config[nextIndex]['show'];
-      bool showTime = compireTime(startTime, endTime);
-      if (show && showTime){
-        returnIndex = nextIndex;
-        continueLoop = false;
-      } else {
-        nextIndex == loopLength - 1 ? nextIndex = 0 : nextIndex = nextIndex + 1;
-      }
-    }
-    return returnIndex;
+    return nextIndex;
   }
 
   // получить путь к файлу следующего индекса
@@ -43,6 +27,27 @@ class ConfigImpl extends ConfigRepository{
     DateTime end = DateTime.parse('$currentDate $endTime');
     return start.isBefore(now) && now.isBefore(end);
   }
+
+  // сравнить дату в конфигурации с текущим
+  @override
+  bool compireDate(String startDate, String endDate){
+    bool result;
+    // Преобразование строк в объекты DateTime
+    DateTime dateStartDate = DateTime.parse(formatDateString(startDate));
+    DateTime dateEndDate = DateTime.parse(formatDateString(endDate));
+    DateTime now = DateTime.now();
+    now.isAfter(dateStartDate) && now.isBefore(dateEndDate) ?
+      result = true : result = false;
+    return result;
+  }
+
+  // Преобразование даты из формата dd.MM.yyyy в yyyy-MM-dd
+  @override
+  String formatDateString(String dateString) {
+    List<String> parts = dateString.split('.');
+    return '${parts[2]}-${parts[1]}-${parts[0]}';
+  }
+
 
   // проверить является ли файл видео
   @override

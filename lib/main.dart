@@ -1,23 +1,26 @@
+import 'package:eurisco_tv_box/data/implements/hive_implementation.dart';
+import 'package:eurisco_tv_box/data/implements/server_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'presentation/android_main.dart';
 import 'presentation/auth.dart';
-import 'data/implements/server_implementation.dart';
+import 'presentation/main_box.dart';
 
 
 void main() async {
   await Hive.initFlutter();
   await Hive.openBox('hiveStorage');
-  String auth = await ServerImpl().autoAuth();
-  runApp(ProviderScope(child: App(auth: auth)));
+  String client = await HiveImpl().getClient();
+  String connection = await ServerImpl().checkDeviceConnection();
+  runApp(ProviderScope(child: App(client: client, connection: connection,)));
 }
 
 
 class App extends StatelessWidget {
-  final String auth;
-  const App({super.key, required this.auth});
+  final String connection;
+  final String client;
+  const App({super.key, required this.client, required this.connection});
 
   @override
   Widget build(BuildContext context) {
@@ -34,19 +37,21 @@ class App extends StatelessWidget {
           ),
         )
       ),
-      home: authRouter(auth),
-      // home: auth == 'unlogin' || auth == 'denied' ? const AuthPage() : 
-      //   const AuthPage() // const MainPage(),
+      home: authRouter(client, connection)
+      // home: client.isEmpty ? const Auth() : const AndroidMain()
     );
   }
 }
 
-Widget authRouter(String auth){
+Widget authRouter(String client, String connection) {
   late Widget router;
-  if (auth == 'unlogin' || auth == 'denied'){
-    router = const AuthAndroid();
+  if (client.isEmpty){
+    router = const Auth();
   } else {
-    router = const AndroidMain();
+    connection == 'disconnect' ? {
+      HiveImpl().saveClient(''),
+      router = const Auth()
+    } : router = const MainBox();
   }
   return router;
 }

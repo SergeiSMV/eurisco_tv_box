@@ -2,6 +2,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../globals.dart';
 import 'implements/device_implementation.dart';
 import 'implements/hive_implementation.dart';
 import 'implements/server_implementation.dart';
@@ -12,6 +13,10 @@ final onFocusIndexProvider = StateProvider((ref) {
 
 final configProvider = StateProvider<Map>((ref) {
   return {};
+});
+
+final contentForDisplayProvider = StateProvider<List>((ref) {
+  return [];
 });
 
 final loopLengthProvider = StateProvider((ref) {
@@ -29,11 +34,11 @@ final contentIndexProvider = StateProvider((ref) {
 
 
 final getConfigProvider = FutureProvider((ref) async {
-  await ServerImpl().getAndroidConfig();
-  List contentConfig = await HiveImpl().getConfig();
+  log.d('получено указание на обновление');
+  List result = await ServerImpl().getBoxConfig();
   String deviceName = await HiveImpl().getDeviceName();
   String deviceID = await DeviceImpl().getCurrentDeviceId();
-  Map config = {'config': contentConfig, 'deviceName': deviceName, 'deviceID': deviceID};
+  Map config = {'content': result, 'deviceName': deviceName, 'deviceID': deviceID};
+  ref.read(loopLengthProvider.notifier).state = result.length;
   ref.read(configProvider.notifier).state = config;
-  ref.read(loopLengthProvider.notifier).state = config['config'].length;
 });

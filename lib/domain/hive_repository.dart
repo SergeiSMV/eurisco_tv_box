@@ -2,6 +2,15 @@
 
 abstract class HiveRepository{
 
+  // НОВЫЕ
+  // сохранить клиента, которому принадлежит устройство
+  Future<void> saveClient(String client);
+
+  // получить клиента, которому принадлежит устройство
+  Future<String> getClient();
+
+
+  // СТАРЫЕ
   // сохранить логин / пароль
   Future<void> saveAuthData(Map authData);
 

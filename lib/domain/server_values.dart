@@ -1,5 +1,18 @@
 // главный сервер
-String server = 'http://89.104.65.133/develop';
+String server = 'https://fluthon.space/develop';
+
+// НОВЫЕ
+// подключение устройства к клиенту
+String serverClientConnect = '$server/box_connect';
+
+// проверка подключения устройства к клиенту
+String serverCheckDeviceConnection = '$server/check_box_connection';
+
+// проверка подключения устройства к клиенту
+String serverBoxConfig = '$server/box_config';
+
+
+// СТАРЫЕ
 // авторизация 
 String serverAuth = '$server/auth';
 // запрос конфигурации для Android
