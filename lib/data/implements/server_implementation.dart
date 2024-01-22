@@ -20,11 +20,11 @@ class ServerImpl extends ServerRepository{
     String deviceID = await DeviceImpl().getCurrentDeviceId();
     try{
       var responce = await dio.get(serverClientConnect, queryParameters: {'device_id': deviceID, 'pin': pin});
-      responce.toString() == 'failed' ? {
+      responce.data.toString() == 'failed' ? {
         result = 'не верный PIN код'
       } : {
         result = 'устройство успешно подключено',
-        HiveImpl().saveClient(responce.toString())
+        HiveImpl().saveClient(responce.data.toString())
       };
     } 
     on DioException catch (_){
@@ -39,12 +39,16 @@ class ServerImpl extends ServerRepository{
     String result;
     String deviceID = await DeviceImpl().getCurrentDeviceId();
     String client = await HiveImpl().getClient();
-    try{
-      var responce = await dio.get(serverCheckDeviceConnection, queryParameters: {'device_id': deviceID, 'client': client});
-      result = responce.data.toString();
-    } 
-    on DioException catch (_){
-      result = 'serverError';
+    if (client.isEmpty){
+      result = 'disconnect';
+    } else {
+      try{
+        var responce = await dio.get(serverCheckDeviceConnection, queryParameters: {'device_id': deviceID, 'client': client});
+        result = responce.data.toString();
+      } 
+      on DioException catch (_){
+        result = 'serverError';
+      }
     }
     return result;
   }

@@ -33,6 +33,12 @@ class _MainPageState extends ConsumerState<MainPage> {
     return ref.refresh(getConfigProvider);
   }
 
+  @override
+  void dispose() async {
+    client?.close();
+    super.dispose();
+  }
+
   Future rabbitInit() async {
     client = await RabbitMQImpl().connectToRabbitMQ(ref);
   }
