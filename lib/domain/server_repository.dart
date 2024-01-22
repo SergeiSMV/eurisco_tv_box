@@ -11,4 +11,7 @@ abstract class ServerRepository{
   // получить конфигурацию для TV Box
   Future<List> getBoxConfig();
 
+  // отключиться от клиента
+  Future<void> disconectDevice();
+
 }

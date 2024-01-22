@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
+import '../globals.dart';
 import 'appbar.dart';
 import 'player/content_manager.dart';
 import 'player/demo_mode.dart';
@@ -29,7 +30,6 @@ class _MainPageState extends ConsumerState<MainPage> {
   @override
   void initState() {
     super.initState();
-    rabbitInit();
     return ref.refresh(getConfigProvider);
   }
 
@@ -39,13 +39,15 @@ class _MainPageState extends ConsumerState<MainPage> {
     super.dispose();
   }
 
-  Future rabbitInit() async {
-    client = await RabbitMQImpl().connectToRabbitMQ(ref);
+  Future rabbitInit(BuildContext context) async {
+    client = await RabbitMQImpl().connectToRabbitMQ(context, ref);
   }
   
 
   @override
   Widget build(BuildContext context) {
+
+    rabbitInit(context);
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{

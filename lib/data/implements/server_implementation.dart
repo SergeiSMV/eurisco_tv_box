@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../domain/server_repository.dart';
 import '../../domain/server_values.dart';
+import '../../globals.dart';
 import 'device_implementation.dart';
 import 'hive_implementation.dart';
 
@@ -114,4 +115,18 @@ class ServerImpl extends ServerRepository{
     on DioException catch (_){ }
     return boxConfig;
   }
+
+  @override // отключиться от клиента
+  Future<void> disconectDevice() async {
+    String deviceID = await DeviceImpl().getCurrentDeviceId();
+    String client = await HiveImpl().getClient();
+    try{
+      await dio.get(serverDisconectDevice, queryParameters: {'device_id': deviceID, 'client': client});
+    } 
+    on DioException catch (_){
+      null;
+    }
+    await HiveImpl().saveClient('');
+  }
+
 }

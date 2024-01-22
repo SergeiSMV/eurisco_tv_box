@@ -11,6 +11,9 @@ String serverCheckDeviceConnection = '$server/check_box_connection';
 // проверка подключения устройства к клиенту
 String serverBoxConfig = '$server/box_config';
 
+// отключиться от клиента
+String serverDisconectDevice = '$server/box_exit';
+
 
 // СТАРЫЕ
 // авторизация 

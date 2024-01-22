@@ -1,8 +1,11 @@
+import 'package:eurisco_tv_box/data/implements/server_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../colors.dart';
+import '../data/implements/device_implementation.dart';
 import '../data/providers.dart';
+import 'auth.dart';
 import 'content_lib.dart';
 
 Widget appBar(BuildContext mainContext){
@@ -44,7 +47,7 @@ Widget appBar(BuildContext mainContext){
                   const Expanded(child: SizedBox(width: 5,)),
 
                   Container(
-                    width: 150,
+                    width: 120,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(25),
                       color: focusIndex == 1 ? Colors.white : Colors.blueGrey.shade600,
@@ -74,7 +77,7 @@ Widget appBar(BuildContext mainContext){
                   const SizedBox(width: 10,),
 
                   Container(
-                    width: 150,
+                    width: 120,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(25),
                       color: focusIndex == 2 ? Colors.white : Colors.blueGrey.shade600,
@@ -99,10 +102,41 @@ Widget appBar(BuildContext mainContext){
 
                   const SizedBox(width: 10,),
 
+                  Container(
+                    width: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: focusIndex == 3 ? Colors.white : Colors.blueGrey.shade600,
+                    ),
+                    child: TextButton(
+                      style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.resolveWith((states) => Colors.transparent),
+                      ),
+                      onFocusChange: (bool isFocused) { 
+                        isFocused ? {
+                          ref.read(onFocusIndexProvider.notifier).state = 3,
+                        } : null;
+                      },
+                      onPressed: (){ 
+                        ref.read(onFocusIndexProvider.notifier).state = 999;
+                        ref.read(containerSizeProvider.notifier).state = 0;
+
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth()));
+                        ref.read(contentForDisplayProvider.notifier).state = [];
+                        ref.read(contentIndexProvider.notifier).state = 0;
+                        ServerImpl().disconectDevice();
+                        DeviceImpl().deleteAllContents();
+                      }, 
+                      child: const Text('выход')
+                    ),
+                  ),
+
+                  const SizedBox(width: 10,),
+
                   InkWell(
                     onFocusChange: (bool isFocused){ 
                       isFocused ? {
-                        ref.read(onFocusIndexProvider.notifier).state = 3,
+                        ref.read(onFocusIndexProvider.notifier).state = 4,
                         ref.read(containerSizeProvider.notifier).state = 95,
                       } : null; 
                     },
@@ -115,7 +149,7 @@ Widget appBar(BuildContext mainContext){
                           Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ContentLib()));
                         }, 
                         icon: const Icon(Icons.photo_library, size: 45,),
-                        color: containerSize == 0 ? Colors.transparent : focusIndex == 3 ? Colors.white : Colors.blueGrey.shade600,
+                        color: containerSize == 0 ? Colors.transparent : focusIndex == 4 ? Colors.white : Colors.blueGrey.shade600,
                         splashRadius: 1,
                       ),
                     )

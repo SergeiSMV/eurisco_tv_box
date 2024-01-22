@@ -39,7 +39,7 @@ class _ContentPlayerState extends ConsumerState<ContentManager> {
     }
     List forDisplay = ref.read(contentForDisplayProvider);
     List contentForShow = [];
-    monitoring = Timer(const Duration(seconds: 30), () {
+    monitoring = Timer(const Duration(seconds: 10), () {
       for (var con in widget.allContents){
         bool show = con['show'];
         bool time = ConfigImpl().compireTime(con['start_time'], con['end_time']);
