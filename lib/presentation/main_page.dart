@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:dart_amqp/dart_amqp.dart' as ampq;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
-import '../globals.dart';
 import 'appbar.dart';
 import 'player/content_manager.dart';
 import 'player/demo_mode.dart';

@@ -6,7 +6,6 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../domain/server_repository.dart';
 import '../../domain/server_values.dart';
-import '../../globals.dart';
 import 'device_implementation.dart';
 import 'hive_implementation.dart';
 

@@ -5,7 +5,6 @@ import 'package:eurisco_tv_box/domain/rabbitmq_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../globals.dart';
 import '../../presentation/auth.dart';
 import '../providers.dart';
 import 'device_implementation.dart';
