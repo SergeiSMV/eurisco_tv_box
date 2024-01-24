@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,10 +48,14 @@ class _ContentPlayerState extends ConsumerState<ContentManager> {
         show && time && date ? contentForShow.add(con) : null;
       }
       
-      Set.from(contentForShow).containsAll(forDisplay) && Set.from(forDisplay).containsAll(contentForShow) ?
+      String jsonContentForShow = jsonEncode(contentForShow);
+      String jsonContentForDisplay = jsonEncode(forDisplay);
+      // Set.from(contentForShow).containsAll(forDisplay) && Set.from(forDisplay).containsAll(contentForShow) 
+      jsonContentForShow == jsonContentForDisplay ?
       null : {
-        ref.read(contentForDisplayProvider.notifier).state = contentForShow,
+        ref.read(contentForDisplayProvider.notifier).state = [].toList(),
         ref.read(contentIndexProvider.notifier).state = 0,
+        ref.read(contentForDisplayProvider.notifier).state = contentForShow.toList(),
       };
 
       scheduleContent();
@@ -66,7 +71,7 @@ class _ContentPlayerState extends ConsumerState<ContentManager> {
 
         return contentForDispaly.isEmpty ?
         const DemoMode(title: '',) : 
-        ContentPlayer(contentForDisplay: contentForDispaly);
+        ContentPlayer(contentForDisplay: contentForDispaly, key: ValueKey(contentForDispaly.length),);
       }
     );
   }

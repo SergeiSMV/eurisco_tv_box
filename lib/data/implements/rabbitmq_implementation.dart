@@ -26,10 +26,14 @@ class RabbitMQImpl extends RabbitMQRepository{
 
       amqp.Channel channel = await client.channel();
       amqp.Queue queue = await channel.queue('euriscotv_qu', durable: true);
-
       amqp.Consumer consumer = await queue.consume(noAck: false);
+
       consumer.listen((amqp.AmqpMessage message) {
+        // Подтверждение обработки сообщения
+        message.ack();
+        
         Map result = jsonDecode(message.payloadAsString);
+
         result['action'] == 'update' ? {
           ref.read(contentForDisplayProvider.notifier).state = [],
           ref.read(contentIndexProvider.notifier).state = 0,
@@ -43,9 +47,6 @@ class RabbitMQImpl extends RabbitMQRepository{
           DeviceImpl().deleteAllContents(),
           client.close()
         } : null;
-
-        // Подтверждение обработки сообщения
-        message.ack();
       });
     } catch (e) {
       null;

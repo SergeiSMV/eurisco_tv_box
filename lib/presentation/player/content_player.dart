@@ -69,6 +69,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
 
     return Consumer(
       builder: (context, ref, child) {
+        
         int currentIndex = ref.watch(contentIndexProvider);
         ConfigImpl configImpl = ConfigImpl();
         ConfigModel cnf = ConfigModel(configModel:  Map<String, dynamic>.from(contents[currentIndex]));

@@ -125,7 +125,6 @@ class ServerImpl extends ServerRepository{
     on DioException catch (_){
       null;
     }
-    await HiveImpl().saveClient('');
   }
 
 }

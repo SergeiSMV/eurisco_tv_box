@@ -15,7 +15,7 @@ class HiveImpl extends HiveRepository{
     await hive.put('client', client);
   }
 
-  @override // сохранить логин / пароль
+  @override // получить клиента
   Future<String> getClient() async {
     String client = await hive.get('client', defaultValue: '');
     return client;

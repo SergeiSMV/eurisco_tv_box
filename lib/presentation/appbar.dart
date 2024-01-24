@@ -117,17 +117,19 @@ Widget appBar(BuildContext mainContext){
                           ref.read(onFocusIndexProvider.notifier).state = 3,
                         } : null;
                       },
-                      onPressed: (){ 
+                      onPressed: () async { 
                         ref.read(onFocusIndexProvider.notifier).state = 999;
                         ref.read(containerSizeProvider.notifier).state = 0;
 
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth()));
                         ref.read(contentForDisplayProvider.notifier).state = [];
                         ref.read(contentIndexProvider.notifier).state = 0;
-                        ServerImpl().disconectDevice();
+                        await ServerImpl().disconectDevice().then((value) {
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth()));
+                        });
                         DeviceImpl().deleteAllContents();
+                        
                       }, 
-                      child: const Text('выход')
+                      child: const Text('отключить')
                     ),
                   ),
 
