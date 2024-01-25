@@ -16,7 +16,10 @@ class ConfigModel with _$ConfigModel {
   String get name => configModel['name'];
   int get duration => configModel['duration'];
   bool get show => configModel['show'];
-  String get startShow => configModel['start_time'];
-  String get endShow => configModel['end_time'];
-
+  String get startTime => configModel['start_time'];
+  String get endTime => configModel['end_time'];
+  String get startDate => configModel['start_date'];
+  String get endDate => configModel['end_date'];
+  String get preview => configModel['preview'];
+  String get stream => configModel['stream'];
 }

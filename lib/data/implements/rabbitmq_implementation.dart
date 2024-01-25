@@ -1,58 +1,37 @@
-import 'dart:convert';
+import 'dart:async';
 
-import 'package:dart_amqp/dart_amqp.dart' as amqp;
+import 'package:dart_amqp/dart_amqp.dart';
 import 'package:eurisco_tv_box/domain/rabbitmq_repository.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../presentation/auth.dart';
-import '../providers.dart';
-import 'device_implementation.dart';
 
 class RabbitMQImpl extends RabbitMQRepository{
 
-  //подключаемся к серверу RabbitMQ
+  // подключаемся к серверу RabbitMQ
   @override
-  Future connectToRabbitMQ(BuildContext context, WidgetRef ref) async {
-    amqp.Client client = amqp.Client();
-    String deviceID = await DeviceImpl().getCurrentDeviceId();
+  Future<Client> connectToRabbitMQ() async {
     try {
-      client = amqp.Client(
-        settings: amqp.ConnectionSettings(
+      Client client = Client();
+      client = Client(
+        settings: ConnectionSettings(
           host: '89.104.65.133',
-          authProvider: const amqp.PlainAuthenticator('rabbit', '2001'),
+          authProvider: const PlainAuthenticator('rabbit', '2001'),
         ),
       );
-
-      amqp.Channel channel = await client.channel();
-      amqp.Queue queue = await channel.queue('euriscotv_qu', durable: true);
-      amqp.Consumer consumer = await queue.consume(noAck: false);
-
-      consumer.listen((amqp.AmqpMessage message) {
-        // Подтверждение обработки сообщения
-        message.ack();
-        
-        Map result = jsonDecode(message.payloadAsString);
-
-        result['action'] == 'update' ? {
-          ref.read(contentForDisplayProvider.notifier).state = [],
-          ref.read(contentIndexProvider.notifier).state = 0,
-          ref.refresh(getConfigProvider)
-        } : null;
-
-        result['action'] == 'exit' && result['device'] == deviceID ? {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth())),
-          ref.read(contentForDisplayProvider.notifier).state = [],
-          ref.read(contentIndexProvider.notifier).state = 0,
-          DeviceImpl().deleteAllContents(),
-          client.close()
-        } : null;
-      });
+      return client;
     } catch (e) {
-      null;
+      await Future.delayed(const Duration(seconds: 10)); // Задержка перед повторной попыткой
+      return connectToRabbitMQ();
     }
-    return client;
-  } 
+  }
+
+  // слушаем сервер RabbitMQ
+  @override
+  void listener(Consumer consumer, Function messageProcessing) {
+    consumer.listen((message) {
+      messageProcessing(message.payloadAsString);
+      // Подтверждение обработки сообщения
+      message.ack();
+    });
+  }
 
 
 

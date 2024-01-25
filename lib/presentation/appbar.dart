@@ -8,17 +8,17 @@ import '../data/providers.dart';
 import 'auth.dart';
 import 'content_lib.dart';
 
-Widget appBar(BuildContext mainContext){
+Widget appBar(BuildContext mainContext, Map deviceConfig){
+  
   return ProviderScope(
     parent: ProviderScope.containerOf(mainContext),
     child: Consumer(
       builder: (context, ref, child){
         final containerSize = ref.watch(containerSizeProvider);
         final focusIndex = ref.watch(onFocusIndexProvider);
-        final config = ref.watch(configProvider);
 
-        String id = config['deviceID'];
-        String name = config['deviceName'];
+        String id = deviceConfig['deviceID'];
+        String name = deviceConfig['deviceName'];
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -148,7 +148,7 @@ Widget appBar(BuildContext mainContext){
                         onPressed: (){ 
                           ref.read(onFocusIndexProvider.notifier).state = 999;
                           ref.read(containerSizeProvider.notifier).state = 0;
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ContentLib()));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => ContentLib(deviceConfig: deviceConfig)));
                         }, 
                         icon: const Icon(Icons.photo_library, size: 45,),
                         color: containerSize == 0 ? Colors.transparent : focusIndex == 4 ? Colors.white : Colors.blueGrey.shade600,

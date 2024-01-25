@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -24,6 +25,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
   VideoPlayerController? controller1;
   VideoPlayerController? controller2;
   Timer? timer;
+  Map? imagePlayList;
 
   late String controllerName1;
   late String controllerName2;
@@ -35,7 +37,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
     super.initState();
     controllerName1 = 'controller1';
     controllerName2 = 'controller2';
-    initDirectory();
+    initPlayer();
   }
 
   @override
@@ -46,11 +48,23 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
     super.dispose();
   }
 
-  Future initDirectory() async {
-    directory = await getExternalStorageDirectory();
-    setState(() {
-      
+  Future initPlayer() async {
+    await getExternalStorageDirectory().then((value) {
+      directory = value;
+      imagePlayList = {};
+      for (var content in widget.contentForDisplay) {
+        String path = '${directory!.path}/${content['name']}';
+        String mimeType = lookupMimeType(path).toString();
+        if (mimeType == 'image/jpeg'){
+          imagePlayList?[content['name']] = Image.file(File(path), fit: BoxFit.fill,);
+          // предварительная загрузка изображения
+          precacheImage(FileImage(File(path)), context);
+        } else {
+          null;
+        }
+      } 
     });
+    setState(() {});
   }
 
 
@@ -58,7 +72,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: directory == null ?
+      body: directory == null || imagePlayList == null ?
       const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3,)) :
       content(widget.contentForDisplay),
     );
@@ -85,7 +99,8 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
         if (contents.length == 1) {
 
           if (isImage){
-            return _imageContent(path);
+            return _imageContent(imagePlayList![cnf.name]);
+            // return _imageContent(path);
           } else {
             controller1 = VideoPlayerController.file(File(path));
             controller1?.initialize();
@@ -115,7 +130,8 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
             timer = Timer(Duration(seconds: cnf.duration), () { 
               nextIndex == currentIndex ? null : ref.read(contentIndexProvider.notifier).state = nextIndex;
             });
-            return _imageContent(path);
+            return _imageContent(imagePlayList![cnf.name]);
+            // return _imageContent(path);
 
           } else {
 
@@ -217,14 +233,21 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
     );
   }
 
-
-  Widget _imageContent(String path){
+  Widget _imageContent(Widget image){
     return SizedBox(
       height: MediaQuery.of(context).size.width,
       width: MediaQuery.of(context).size.width,
-      child: Image.file(File(path), fit: BoxFit.fill,)
+      child: image
     );
   }
+
+  // Widget _imageContent(String path){
+  //   return SizedBox(
+  //     height: MediaQuery.of(context).size.width,
+  //     width: MediaQuery.of(context).size.width,
+  //     child: Image.file(File(path), fit: BoxFit.fill,)
+  //   );
+  // }
 
   Widget _videoContent(VideoPlayerController controller){
     return AspectRatio(

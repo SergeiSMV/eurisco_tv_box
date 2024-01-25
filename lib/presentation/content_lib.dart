@@ -4,17 +4,18 @@ import 'package:dotlottie_loader/dotlottie_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
 import '../colors.dart';
 import '../data/providers.dart';
+import '../domain/config_model/config_model.dart';
 import 'player/preview_player.dart';
 
 class ActionIntent extends Intent {}
 
 class ContentLib extends ConsumerStatefulWidget {
-  const ContentLib({super.key});
+  final Map deviceConfig;
+  const ContentLib({super.key, required this.deviceConfig});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ContentLibState();
@@ -22,26 +23,27 @@ class ContentLib extends ConsumerStatefulWidget {
 
 class _ContentLibState extends ConsumerState<ContentLib> {
 
-  Timer timer = Timer(const Duration(seconds: 0), () { null; });
-  late String _timeString;
+  // Timer timer = Timer(const Duration(seconds: 0), () { null; });
+  // late String _timeString;
 
   @override
   void initState() {
-    _timeString = _formatDateTime(DateTime.now());
-    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
-    super.initState();
+    // _timeString = _formatDateTime(DateTime.now());
+    // timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
     super.initState();
   }
 
   @override
   void dispose() async {
-    timer.cancel();
+    // timer.cancel();
     super.dispose();
   }
 
+  /*
   void _getTime() {
     final DateTime now = DateTime.now();
     final String formattedDateTime = _formatDateTime(now);
+    
     setState(() {
       _timeString = formattedDateTime;
     });
@@ -50,11 +52,12 @@ class _ContentLibState extends ConsumerState<ContentLib> {
   String _formatDateTime(DateTime dateTime) {
     return DateFormat('HH:mm:ss').format(dateTime);
   }
+  */
 
   @override
   Widget build(BuildContext context) {
 
-    ref.watch(getConfigProvider);
+    // ref.watch(getConfigProvider);
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
@@ -85,12 +88,10 @@ class _ContentLibState extends ConsumerState<ContentLib> {
               ),
               child: Consumer(
                 builder: (context, ref, child) {
-            
-                  final config = ref.watch(configProvider);
+
                   final focusIndex = ref.watch(onFocusIndexProvider);
             
-                  return config.isEmpty ? loading() :
-                  
+                  return widget.deviceConfig.isEmpty ? loading() :
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,16 +108,16 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(top: 20, left: 25),
-                                child: Text('ID: ${config['deviceID']}', style: firm18,),
+                                child: Text('ID: ${widget.deviceConfig['deviceID']}', style: firm18,),
                               ),
                               Padding(
                                 padding: const EdgeInsets.only(left: 25),
-                                child: Text('Имя: ${config['deviceName']}', style: firm18,),
+                                child: Text('Имя: ${widget.deviceConfig['deviceName']}', style: firm18,),
                               ),
                             ],
                           ),
-                          const SizedBox(width: 50,),
-                          Text(_timeString, style: firm18)
+                          // const SizedBox(width: 50,),
+                          // Text(_timeString, style: firm18)
                         ],
                       ),                      
         
@@ -129,17 +130,20 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               mainAxisSpacing: 5,
                               crossAxisSpacing: 10,
-                              childAspectRatio: 1.3,
+                              childAspectRatio: 1.2,
                               crossAxisCount: 3
                             ),
-                            itemCount: config['content'].length,
+                            itemCount: widget.deviceConfig['content'].length,
                             itemBuilder: (context, index){
+
+                              ConfigModel config = ConfigModel(configModel: Map<String, dynamic>.from(widget.deviceConfig['content'][index]));
+
                               return InkWell(
                                 onFocusChange: (bool isFocused){
                                   isFocused ? ref.read(onFocusIndexProvider.notifier).state = index : null;
                                 },
                                 onTap: (){ 
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PreviewPlayer(content: config['content'][index])));
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PreviewPlayer(content: widget.deviceConfig['content'][index])));
                                 },
                                 overlayColor: MaterialStateProperty.resolveWith((states) => Colors.transparent),
                                 child: Padding(
@@ -163,7 +167,7 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                                                 aspectRatio: 16.0 / 9.0,
                                                 child: FittedBox(
                                                   fit: BoxFit.fill,
-                                                  child: Image.network(config['content'][index]['preview'])
+                                                  child: Image.network(config.preview)
                                                 )
                                               ),
                                               Positioned.fill(
@@ -188,14 +192,22 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.only(left: 5),
-                                        child: Text(config['content'][index]['name'], style: firm18,),
+                                        child: Text(config.name, style: firm18,),
+                                      ),
+
+                                      config.show ? const SizedBox.shrink() :
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 5),
+                                        child: Text('показ на устройстве запрещен', style: firm14)
+                                      ),
+
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 5),
+                                        child: Text('дата: с ${config.startDate} по ${config.endDate}', style: firm14)
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.only(left: 5),
-                                        child: config['content'][index]['show'] ? 
-                                          Text('${config['content'][index]['start']} - ${config['content'][index]['end']}', style: firm14) 
-                                          : 
-                                          Text('показ на устройстве запрещен', style: firm14),
+                                        child: Text('время: с ${config.startTime} до ${config.endTime}', style: firm14)
                                       ),
                                     ],
                                   ),

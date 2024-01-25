@@ -19,7 +19,7 @@ class _PreviewPlayerState extends State<PreviewPlayer> {
 
   late VideoPlayerController _controller;
   late final Directory? directory;
-  late bool isImage;
+  bool? isImage;
   late String contentPath;
 
   @override
@@ -30,7 +30,7 @@ class _PreviewPlayerState extends State<PreviewPlayer> {
 
   @override
   void dispose() async {
-    isImage ? null : _controller.dispose();
+    isImage! ? null : _controller.dispose();
     super.dispose();
   }
 
@@ -40,7 +40,6 @@ class _PreviewPlayerState extends State<PreviewPlayer> {
     String mimeType = lookupMimeType(path).toString();
     mimeType == 'image/jpeg' ? isImage = true : isImage = false;
     setState(() {
-
       contentPath = path;
       mimeType == 'image/jpeg' ? null : {
         _controller = VideoPlayerController.file(File(path)),
@@ -58,16 +57,18 @@ class _PreviewPlayerState extends State<PreviewPlayer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: isImage ? 
-        SizedBox(
-          height: MediaQuery.of(context).size.width,
-          width: MediaQuery.of(context).size.width,
-          child: Image.file(File(contentPath), fit: BoxFit.fill,)
-        ) :
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: VideoPlayer(_controller),
-        )
-    );
+      body: isImage == null ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3,),) : 
+      
+        isImage! ? 
+          SizedBox(
+            height: MediaQuery.of(context).size.width,
+            width: MediaQuery.of(context).size.width,
+            child: Image.file(File(contentPath), fit: BoxFit.fill,)
+          ) :
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: VideoPlayer(_controller),
+          )
+      );
   }
 }

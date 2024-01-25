@@ -1,11 +1,16 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:dart_amqp/dart_amqp.dart' as ampq;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/implements/device_implementation.dart';
 import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
 import 'appbar.dart';
+import 'auth.dart';
 import 'player/content_manager.dart';
 import 'player/demo_mode.dart';
 
@@ -21,28 +26,51 @@ class MainPage extends ConsumerStatefulWidget {
 class _MainPageState extends ConsumerState<MainPage> {
 
   ampq.Client? client;
+  ampq.Channel? channel;
+  ampq.Queue? queue;
+  ampq.Consumer? consumer;
+  Timer? connectMonitoring;
+  late String deviceID;
+
+
 
   @override
   void initState() {
     super.initState();
+    rabbitInit();
     return ref.refresh(getConfigProvider);
   }
 
   @override
-  void dispose() async {
+  void dispose() {
     client?.close();
     super.dispose();
   }
 
-  Future rabbitInit(BuildContext context) async {
-    client = await RabbitMQImpl().connectToRabbitMQ(context, ref);
+  Future rabbitInit() async {
+    deviceID = await DeviceImpl().getCurrentDeviceId();
+    await RabbitMQImpl().connectToRabbitMQ().then((initClient) async {
+      client = initClient;
+      channel = await client!.channel();
+      queue = await channel!.queue('euriscotv_qu', durable: true);
+      consumer = await queue!.consume(noAck: false);
+      RabbitMQImpl().listener(consumer!, messageProcessing);
+    });
+    scheduleConnect(queue!);
   }
-  
+
+  void scheduleConnect(ampq.Queue queue) {
+    if (connectMonitoring != null) {
+      connectMonitoring!.cancel();
+    }
+    connectMonitoring = Timer(const Duration(seconds: 180), () {
+      queue.publish('test_connection');
+      scheduleConnect(queue);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    rabbitInit(context);
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
@@ -67,12 +95,13 @@ class _MainPageState extends ConsumerState<MainPage> {
               body: Consumer(
                 builder: (context, ref, child) {
                   List content = ref.watch(contentProvider);
+                  Map deviceConfig = ref.read(configProvider);
                   return content.isEmpty ?
                   const DemoMode(title: '',) : 
                   Stack(
                     children: [
                       ContentManager(allContents: content),
-                      appBar(context)
+                      appBar(context, deviceConfig)
                     ],
                   );
                 }
@@ -83,4 +112,26 @@ class _MainPageState extends ConsumerState<MainPage> {
       ),
     );
   }
+
+  void messageProcessing(String message) {
+    try{
+      Map result = jsonDecode(message);
+      result['action'] == 'update' && result['device'] == deviceID ? {
+        ref.read(contentForDisplayProvider.notifier).state = [],
+        ref.read(contentIndexProvider.notifier).state = 0,
+        ref.refresh(getConfigProvider)
+      } : null;
+
+      result['action'] == 'exit' && result['device'] == deviceID ? {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Auth())),
+        ref.read(contentForDisplayProvider.notifier).state = [],
+        ref.read(contentIndexProvider.notifier).state = 0,
+        DeviceImpl().deleteAllContents(),
+        client?.close()
+      } : null;
+    } catch (e) {
+      null;
+    }
+  }
+
 }

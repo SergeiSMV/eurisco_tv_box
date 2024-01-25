@@ -1,11 +1,13 @@
 
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dart_amqp/dart_amqp.dart';
 
 abstract class RabbitMQRepository{
 
   //подключаемся к серверу RabbitMQ
-  Future connectToRabbitMQ(BuildContext context, WidgetRef ref);
+  Future connectToRabbitMQ();
+
+  // слушаем сервер RabbitMQ
+  void listener(Consumer consumer, Function messageProcessing);
 
 }
