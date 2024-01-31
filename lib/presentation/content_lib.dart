@@ -130,7 +130,7 @@ class _ContentLibState extends ConsumerState<ContentLib> {
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               mainAxisSpacing: 5,
                               crossAxisSpacing: 10,
-                              childAspectRatio: 1.2,
+                              childAspectRatio: 1.1,
                               crossAxisCount: 3
                             ),
                             itemCount: widget.deviceConfig['content'].length,
