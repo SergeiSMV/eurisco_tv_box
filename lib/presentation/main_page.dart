@@ -5,6 +5,7 @@ import 'package:dart_amqp/dart_amqp.dart' as ampq;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../data/implements/device_implementation.dart';
 import '../data/implements/rabbitmq_implementation.dart';
@@ -44,6 +45,7 @@ class _MainPageState extends ConsumerState<MainPage> {
   @override
   void dispose() {
     client?.close();
+    WakelockPlus.disable();
     super.dispose();
   }
 
@@ -57,6 +59,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       RabbitMQImpl().listener(consumer!, messageProcessing);
     });
     scheduleConnect(queue!);
+    WakelockPlus.enable();
   }
 
   void scheduleConnect(ampq.Queue queue) {
@@ -80,32 +83,27 @@ class _MainPageState extends ConsumerState<MainPage> {
         actions: {
           ActionIntent: CallbackAction(onInvoke: (Intent i) => null),
         },
-        child: WillPopScope(
-          onWillPop: () async {
-            return false;
+        child: GestureDetector(
+          onPanUpdate: (details) async {
+            ref.read(contentForDisplayProvider.notifier).state = [];
+            ref.read(contentIndexProvider.notifier).state = 0;
+            return ref.refresh(getConfigProvider);
           },
-          child: GestureDetector(
-            onPanUpdate: (details) async {
-              ref.read(contentForDisplayProvider.notifier).state = [];
-              ref.read(contentIndexProvider.notifier).state = 0;
-              return ref.refresh(getConfigProvider);
-            },
-            child: Scaffold(
-              backgroundColor: Colors.black,
-              body: Consumer(
-                builder: (context, ref, child) {
-                  List content = ref.watch(contentProvider);
-                  Map deviceConfig = ref.read(configProvider);
-                  return content.isEmpty ?
-                  const DemoMode(title: '',) : 
-                  Stack(
-                    children: [
-                      ContentManager(allContents: content),
-                      appBar(context, deviceConfig)
-                    ],
-                  );
-                }
-              ),
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: Consumer(
+              builder: (context, ref, child) {
+                List content = ref.watch(contentProvider);
+                Map deviceConfig = ref.read(configProvider);
+                return content.isEmpty ?
+                const DemoMode(title: '',) : 
+                Stack(
+                  children: [
+                    ContentManager(allContents: content),
+                    appBar(context, deviceConfig)
+                  ],
+                );
+              }
             ),
           ),
         ),

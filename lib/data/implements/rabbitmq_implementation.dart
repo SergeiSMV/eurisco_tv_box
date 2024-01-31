@@ -27,9 +27,9 @@ class RabbitMQImpl extends RabbitMQRepository{
   @override
   void listener(Consumer consumer, Function messageProcessing) {
     consumer.listen((message) {
-      messageProcessing(message.payloadAsString);
       // Подтверждение обработки сообщения
       message.ack();
+      messageProcessing(message.payloadAsString);
     });
   }
 
