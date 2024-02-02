@@ -121,7 +121,7 @@ class _AuthState extends ConsumerState<Auth> {
                         ),
                                     
                         const SizedBox(height: 20,),
-                        Opacity(opacity: 0.8, child: Text('Все права зашищены©. ООО ЭВРИСКО, 2023', style: firm10,)),
+                        Opacity(opacity: 0.8, child: Text('Все права защищены©. ООО ЭВРИСКО, 2023', style: firm10,)),
                         const SizedBox(height: 20,),
                       ],
                     ),

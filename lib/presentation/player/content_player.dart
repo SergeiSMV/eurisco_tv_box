@@ -45,6 +45,8 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
     controller1?.dispose();
     controller2?.dispose();
     timer?.cancel();
+    imageCache.clear();
+    imageCache.clearLiveImages();
     super.dispose();
   }
 
@@ -56,14 +58,25 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
         String path = '${directory!.path}/${content['name']}';
         String mimeType = lookupMimeType(path).toString();
         if (mimeType == 'image/jpeg'){
-          imagePlayList?[content['name']] = Image.file(File(path), fit: BoxFit.fill,);
+          File(path).create(recursive: true);
+          imagePlayList?[content['name']] = SizedBox(
+            height: MediaQuery.of(context).size.width,
+            width: MediaQuery.of(context).size.width,
+            child: Image.file(
+              File(path), 
+              fit: BoxFit.fill, 
+              gaplessPlayback: true,
+              cacheWidth: MediaQuery.of(context).size.width.toInt(),
+              filterQuality: FilterQuality.high,),
+          );
           // предварительная загрузка изображения
-          precacheImage(FileImage(File(path)), context);
+          // precacheImage(FileImage(File(path)), context);
         } else {
           null;
         }
-      } 
+      }
     });
+    
     setState(() {});
   }
 
@@ -74,12 +87,12 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
       backgroundColor: Colors.black,
       body: directory == null || imagePlayList == null ?
       const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3,)) :
-      content(widget.contentForDisplay),
+      content(widget.contentForDisplay, context),
     );
   }
 
 
-  Widget content(List contents){
+  Widget content(List contents, BuildContext context){
 
     return Consumer(
       builder: (context, ref, child) {
@@ -99,8 +112,9 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
         if (contents.length == 1) {
 
           if (isImage){
-            return _imageContent(imagePlayList![cnf.name]);
-            // return _imageContent(path);
+            // return _imageContent(path, context);
+            return imagePlayList![cnf.name];
+            // return _imageContent(imagePlayList![cnf.name]);
           } else {
             controller1 = VideoPlayerController.file(File(path));
             controller1?.initialize();
@@ -130,9 +144,9 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
             timer = Timer(Duration(seconds: cnf.duration), () { 
               nextIndex == currentIndex ? null : ref.read(contentIndexProvider.notifier).state = nextIndex;
             });
-            return _imageContent(imagePlayList![cnf.name]);
-            // return _imageContent(path);
-
+            // return _imageContent(path, context);
+            return imagePlayList![cnf.name];
+            // return _imageContent(imagePlayList![cnf.name]);
           } else {
 
             if (controllerName1 == cnf.name){
@@ -229,25 +243,30 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
             }
           }
         }
-      }
+      },
     );
   }
 
-  Widget _imageContent(Widget image){
-    return SizedBox(
-      height: MediaQuery.of(context).size.width,
-      width: MediaQuery.of(context).size.width,
-      child: image
-    );
-  }
-
-  // Widget _imageContent(String path){
+  // Widget _imageContent(Widget image){
   //   return SizedBox(
   //     height: MediaQuery.of(context).size.width,
   //     width: MediaQuery.of(context).size.width,
-  //     child: Image.file(File(path), fit: BoxFit.fill,)
+  //     child: image
   //   );
   // }
+
+  Widget _imageContent(String path, BuildContext context){
+    return SizedBox(
+      height: MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width,
+      child: Image.file(
+        File(path), 
+        fit: BoxFit.fill, 
+        gaplessPlayback: true,
+        cacheWidth: MediaQuery.of(context).size.width.toInt(),
+      )
+    );
+  }
 
   Widget _videoContent(VideoPlayerController controller){
     return AspectRatio(

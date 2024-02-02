@@ -1,13 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <uses-feature android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen"
+              android:required="false" />
 
     <application
         android:label="Eurisco TV"
         android:name="${applicationName}"
         android:icon="@mipmap/icon_launcher"
         android:banner="@drawable/banner">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -23,10 +27,15 @@
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
-              />
+            />
+            <meta-data
+                android:name="io.flutter.embedding.android.EnableImpeller"
+                android:value="true"
+            />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
         <meta-data

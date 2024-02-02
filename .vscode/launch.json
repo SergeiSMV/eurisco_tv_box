@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter Profiler",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        }
+    ]
+}
