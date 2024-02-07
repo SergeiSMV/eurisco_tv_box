@@ -10,7 +10,6 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../data/implements/device_implementation.dart';
 import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
-import 'appbar.dart';
 import 'auth.dart';
 import 'player/content_manager.dart';
 import 'player/demo_mode.dart';

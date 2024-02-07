@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/implements/config_implementation.dart';
 import '../../data/providers.dart';
-import 'content_player.dart';
 import 'demo_mode.dart';
 import 'new_content_player.dart';
 
