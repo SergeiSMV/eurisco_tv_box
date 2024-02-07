@@ -34,10 +34,10 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
 
   @override
   void initState() {
-    super.initState();
     controllerName1 = 'controller1';
     controllerName2 = 'controller2';
     initPlayer();
+    super.initState();
   }
 
   @override

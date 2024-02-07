@@ -94,15 +94,17 @@ class _MainPageState extends ConsumerState<MainPage> {
             body: Consumer(
               builder: (context, ref, child) {
                 List content = ref.watch(contentProvider);
-                Map deviceConfig = ref.read(configProvider);
+                // Map deviceConfig = ref.read(configProvider);
                 return content.isEmpty ?
-                const DemoMode(title: '',) : 
+                const DemoMode(title: '',) : ContentManager(allContents: content);
+                /*
                 Stack(
                   children: [
                     ContentManager(allContents: content),
                     appBar(context, deviceConfig)
                   ],
                 );
+                */
               }
             ),
           ),

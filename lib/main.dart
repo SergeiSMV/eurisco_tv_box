@@ -9,6 +9,8 @@ import 'presentation/main_page.dart';
 
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  CustomShaderWarmUp().execute();
   await Hive.initFlutter();
   await Hive.openBox('hiveStorage');
   String client = await HiveImpl().getClient();
@@ -54,4 +56,19 @@ Widget authRouter(String client, String connection) {
     } : router = const MainPage();
   }
   return router;
+}
+
+class CustomShaderWarmUp extends ShaderWarmUp {
+  @override
+  Future<void> warmUpOnCanvas(Canvas canvas) async {
+    final paint = Paint()
+      ..color = Colors.blue
+      ..shader = const LinearGradient(
+        colors: [Colors.blue, Colors.purple],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(const Rect.fromLTRB(0, 0, 400, 400));
+    
+    canvas.drawRect(const Rect.fromLTRB(0, 0, 400, 400), paint);
+  }
 }

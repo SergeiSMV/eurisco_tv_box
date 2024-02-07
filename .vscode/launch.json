@@ -1,10 +1,10 @@
-{
-    "configurations": [
-        {
-            "name": "Flutter Profiler",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        }
-    ]
-}
+// {
+//     "configurations": [
+//         {
+//             "name": "Flutter Profiler",
+//             "request": "launch",
+//             "type": "dart",
+//             "flutterMode": "profile"
+//         }
+//     ]
+// }

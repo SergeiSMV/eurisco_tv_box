@@ -8,6 +8,7 @@ import '../../data/implements/config_implementation.dart';
 import '../../data/providers.dart';
 import 'content_player.dart';
 import 'demo_mode.dart';
+import 'new_content_player.dart';
 
 class ContentManager extends ConsumerStatefulWidget {
   final List allContents;
@@ -71,7 +72,8 @@ class _ContentPlayerState extends ConsumerState<ContentManager> {
 
         return contentForDispaly.isEmpty ?
         const DemoMode(title: '',) : 
-        ContentPlayer(contentForDisplay: contentForDispaly, key: ValueKey(contentForDispaly.length),);
+        // ContentPlayer(contentForDisplay: contentForDispaly, key: ValueKey(contentForDispaly.length),);
+        NewContentPlayer(contentForDisplay: contentForDispaly, key: ValueKey(contentForDispaly.length),);
       }
     );
   }
