@@ -10,6 +10,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../data/implements/device_implementation.dart';
 import '../data/implements/rabbitmq_implementation.dart';
 import '../data/providers.dart';
+import 'appbar.dart';
 import 'auth.dart';
 import 'player/content_manager.dart';
 import 'player/demo_mode.dart';
@@ -31,6 +32,9 @@ class _MainPageState extends ConsumerState<MainPage> {
   ampq.Consumer? consumer;
   Timer? connectMonitoring;
   late String deviceID;
+  int? screenWidth;
+  int? screenHeight;
+
 
 
 
@@ -38,7 +42,6 @@ class _MainPageState extends ConsumerState<MainPage> {
   void initState() {
     super.initState();
     rabbitInit();
-    return ref.refresh(getConfigProvider);
   }
 
   @override
@@ -46,6 +49,16 @@ class _MainPageState extends ConsumerState<MainPage> {
     client?.close();
     WakelockPlus.disable();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) {
+      screenWidth = MediaQuery.of(context).size.width.toInt();
+      screenHeight = MediaQuery.of(context).size.height.toInt();
+      return ref.refresh(getConfigProvider({'width': screenWidth, 'height': screenHeight}));
+    }
   }
 
   Future rabbitInit() async {
@@ -86,24 +99,25 @@ class _MainPageState extends ConsumerState<MainPage> {
           onPanUpdate: (details) async {
             ref.read(contentForDisplayProvider.notifier).state = [];
             ref.read(contentIndexProvider.notifier).state = 0;
-            return ref.refresh(getConfigProvider);
+            return ref.refresh(getConfigProvider({'width': screenWidth, 'height': screenHeight}));
           },
           child: Scaffold(
             backgroundColor: Colors.black,
             body: Consumer(
               builder: (context, ref, child) {
                 List content = ref.watch(contentProvider);
-                // Map deviceConfig = ref.read(configProvider);
+                Map deviceConfig = ref.read(configProvider);
                 return content.isEmpty ?
-                const DemoMode(title: '',) : ContentManager(allContents: content);
-                /*
+                const DemoMode(title: '',) : 
+                // ContentManager(allContents: content);
+                
                 Stack(
                   children: [
                     ContentManager(allContents: content),
                     appBar(context, deviceConfig)
                   ],
                 );
-                */
+                
               }
             ),
           ),
@@ -118,7 +132,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       result['action'] == 'update' && result['device'] == deviceID ? {
         ref.read(contentForDisplayProvider.notifier).state = [],
         ref.read(contentIndexProvider.notifier).state = 0,
-        ref.refresh(getConfigProvider)
+        ref.refresh(getConfigProvider({'width': screenWidth, 'height': screenHeight}))
       } : null;
 
       result['action'] == 'exit' && result['device'] == deviceID ? {

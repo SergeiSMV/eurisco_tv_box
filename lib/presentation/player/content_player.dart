@@ -247,6 +247,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
     );
   }
 
+  /*
   // Widget _imageContent(Widget image){
   //   return SizedBox(
   //     height: MediaQuery.of(context).size.width,
@@ -267,6 +268,7 @@ class _ContentPlayerState extends ConsumerState<ContentPlayer> {
       )
     );
   }
+  */
 
   Widget _videoContent(VideoPlayerController controller){
     return AspectRatio(

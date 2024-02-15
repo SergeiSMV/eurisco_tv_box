@@ -26,11 +26,25 @@ class _ContentLibState extends ConsumerState<ContentLib> {
   // Timer timer = Timer(const Duration(seconds: 0), () { null; });
   // late String _timeString;
 
+  int? screenWidth;
+  int? screenHeight;
+
   @override
   void initState() {
     // _timeString = _formatDateTime(DateTime.now());
     // timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
+    screenWidth = MediaQuery.of(context).size.width.toInt();
+    screenHeight = MediaQuery.of(context).size.height.toInt();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) {
+      screenWidth = MediaQuery.of(context).size.width.toInt();
+      screenHeight = MediaQuery.of(context).size.height.toInt();
+    }
   }
 
   @override
@@ -72,7 +86,7 @@ class _ContentLibState extends ConsumerState<ContentLib> {
             ref.read(configProvider.notifier).state = {};
             ref.read(onFocusIndexProvider.notifier).state = 999;
             return Future.delayed(const Duration(seconds: 3), () {
-              return ref.refresh(getConfigProvider);
+              return ref.refresh(getConfigProvider({'width': screenWidth, 'height': screenHeight}));
             });
           },
           child: Scaffold(

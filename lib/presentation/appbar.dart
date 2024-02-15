@@ -64,11 +64,13 @@ Widget appBar(BuildContext mainContext, Map deviceConfig){
                         } : null;
                       },
                       onPressed: () { 
+                        int screenWidth = MediaQuery.of(context).size.width.toInt();
+                        int screenHeight = MediaQuery.of(context).size.height.toInt();
                         ref.read(contentForDisplayProvider.notifier).state = [];
                         ref.read(contentIndexProvider.notifier).state = 0;
                         ref.read(containerSizeProvider.notifier).state = 0;
                         ref.read(onFocusIndexProvider.notifier).state = 999;
-                        return ref.refresh(getConfigProvider); 
+                        return ref.refresh(getConfigProvider({'width': screenWidth, 'height': screenHeight}));
                       }, 
                       child: const Text('обновить')
                     ),

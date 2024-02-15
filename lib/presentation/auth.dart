@@ -24,6 +24,8 @@ class Auth extends ConsumerStatefulWidget {
 class _AuthState extends ConsumerState<Auth> {
 
   bool isKeyboardOpen = false;
+  int? screenWidth;
+  int? screenHeight;
 
   @override
   void initState() {
@@ -34,6 +36,15 @@ class _AuthState extends ConsumerState<Auth> {
   @override
   void dispose() async {
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) {
+      screenWidth = MediaQuery.of(context).size.width.toInt();
+      screenHeight = MediaQuery.of(context).size.height.toInt();
+    }
   }
 
   @override
@@ -108,7 +119,7 @@ class _AuthState extends ConsumerState<Auth> {
                           onComplete: (String value) async {
                             final progress = ProgressHUD.of(context);
                             progress?.showWithText('проверка...');
-                            ServerImpl().connectDevice(value).then((result) {
+                            await ServerImpl().connectDevice(value, screenWidth, screenHeight).then((result) {
                               messenger._toast(result);
                               progress?.dismiss();
                               result == 'failed' ? {

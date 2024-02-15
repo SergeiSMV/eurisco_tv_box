@@ -24,8 +24,9 @@ final configProvider = StateProvider<Map>((ref) {
 });
 
 
-final getConfigProvider = FutureProvider((ref) async {
-  List result = await ServerImpl().getBoxConfig();
+final getConfigProvider = FutureProvider.family((ref, Map<String, dynamic> screen) async {
+  List result = await ServerImpl().getBoxConfig(screen['width'], screen['height']);
+  // log.d(result);
   String deviceName = await HiveImpl().getDeviceName();
   String deviceID = await DeviceImpl().getCurrentDeviceId();
   Map config = {'content': result, 'deviceName': deviceName, 'deviceID': deviceID};
